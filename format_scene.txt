@@ -5,8 +5,6 @@ Sur chaque lignes d'un fichier de format, il y aura:
 	2:triangle
 	3:cylindre
 	4:camera
--suivi d'un espace
--suivi de la position de l'objet
--suivi des caractéristiques de couleur
+-suivi d'une tabulation
 -suivi de la matrice de transformation
 -suivi de la matrice inverse
