@@ -6,5 +6,6 @@ Sur chaque lignes d'un fichier de format, il y aura:
 	3:cylindre
 	4:camera
 -suivi d'une tabulation
--suivi de la matrice de transformation
--suivi de la matrice inverse
+-suivi de la matrice de transformation (nombres séparés pas un espace)
+- suivi de deux espaces
+-suivi de la matrice inverse (nombres séparés pas un espace)
