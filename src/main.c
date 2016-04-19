@@ -1,5 +1,6 @@
 #include <g3x.h>
 #include <limits.h>
+#define IMAGE_SIZE 64
 
 int rayInterCercle(G3Xpoint pos,G3Xvector dir, G3Xpoint ri);
 int rayInterTriangle(G3Xpoint pos, G3Xvector dir, G3Xpoint ri);
@@ -13,94 +14,31 @@ void doLevel4(int argc,char* argv[]);
 void save(char * dst);
 
 typedef struct{
-	G3Xpoint a;
-	G3Xpoint b;
-	G3Xpoint c;
-	int (*intersection)(G3Xpoint,G3Xvector,G3Xpoint);
-}Triangle;
-
-typedef struct{
-	G3Xpoint centre;
-	double rayon;
-	int (*intersection)(G3Xpoint,G3Xvector,G3Xpoint);
-}Sphere;
-
-typedef struct{
-	G3Xpoint depart;
-	G3Xvector longueur;
-	G3Xvector largeur;
-	G3Xvector hauteur;
-	int (*intersection)(G3Xpoint,G3Xvector,G3Xpoint);
-}Rectangle;
-
-typedef struct{
-	G3Xpoint centre;
-	double rayon;
-	G3Xvector hauteur;
-	int (*intersection)(G3Xpoint,G3Xvector,G3Xpoint);
-}Cylindre;
-
-typedef struct{
-	G3Xpoint pos;
-	G3Xvector dir;
-}Rayon;
-
-typedef struct{
 	G3Xcolor color;
 	int (*intersection)(G3Xpoint,G3Xvector,G3Xpoint);
 	G3Xhmat transfo;
 	G3Xhmat inverse;
 }Object;
 
-
-Triangle triangle = {	
-	{0,0,0}, 
-	{1,0,0}, 
-	{0,1,0},	
-	rayInterTriangle
-};
-
-Sphere sphere = {
-	{0,0,0},
-	1,
-	rayInterCercle
-};
-
-Rectangle rectangle = {
-	{0,0,0},
-	{1,0,0},
-	{0,1,0},
-	{0,0,1},
-	rayInterRectangle
-};
-
-
-Cylindre cylindre = {
-	{0,0,0},
-	1,
-	{0,0,1},
-	NULL
-};
 Object camera;
 Object objects[100];
 int nbObjects = 0;
-G3Xcolor image[32][32];
+G3Xcolor image[IMAGE_SIZE][IMAGE_SIZE];
 /*****************************************************************************************************/
 
 void save(char * dst){
 	FILE* fichier = fopen(dst,"w");
 	fprintf(fichier, "P3\n");
-	fprintf(fichier, "32 32\n");
+	fprintf(fichier, "%d %d\n",IMAGE_SIZE,IMAGE_SIZE);
 	fprintf(fichier, "255\n");	
 	int i = 0;
 	int j = 0;
-	for(i = 0; i<31; i++){
-		for(j = 0; j<31; j++){
+	for(i = 0; i<IMAGE_SIZE; i++){
+		for(j = 0; j<IMAGE_SIZE -1; j++){
 			fprintf(fichier, "%d %d %d\t",(int)image[i][j][0],(int)image[i][j][1],(int)image[i][j][2] );
 		}
 		fprintf(fichier, "%d %d %d\n",(int)image[i][j][0],(int)image[i][j][1],(int)image[i][j][2] );
 	}
-	fprintf(fichier, "%d %d %d",(int)image[i][j][0],(int)image[i][j][1],(int)image[i][j][2] );
 	fclose(fichier);
 }
 
@@ -108,8 +46,7 @@ void initObjects(char* src){
 	FILE* fichier = fopen(src,"r");
 	if (fichier != NULL){
 		int type = 0;
-		while(fscanf(fichier,"%d\t",&type) != EOF){
-			int i = 0;
+		while(fscanf(fichier,"%d\n",&type) != EOF){
 			if(type != 4){
 				switch(type){
 					case 0 :
@@ -137,25 +74,64 @@ void initObjects(char* src){
 						objects[nbObjects].color[2] = 0;
 						break;
 				}
-				for(i = 0; i<15; i++){
-					if(fscanf(fichier,"%lf ",&(objects[nbObjects].transfo[i])));
-				}
 
-				if(fscanf(fichier,"%lf  ",&(objects[nbObjects].transfo[i])));
-				for(i = 0; i<15; i++){
-					if(fscanf(fichier,"%lf ",&(objects[nbObjects].inverse[i])));
+
+				int count = 0;
+				int i = 0;
+				for(i = 0; i<4; i++){
+					if(fscanf(fichier,"%lf ",&(objects[nbObjects].transfo[count])));
+					count++;
+					if(fscanf(fichier,"%lf ",&(objects[nbObjects].transfo[count])));
+					count++;
+					if(fscanf(fichier,"%lf ",&(objects[nbObjects].transfo[count])));
+					count++;
+					if(fscanf(fichier,"%lf\n",&(objects[nbObjects].transfo[count])));
+					count++;
 				}
-				if(fscanf(fichier,"%lf\n",&(objects[nbObjects].inverse[i])));
+				if(fscanf(fichier,"\n"));
+
+				count  = 0;
+				for(i = 0; i<4; i++){
+					if(fscanf(fichier,"%lf ",&(objects[nbObjects].inverse[count])));
+					count++;
+					if(fscanf(fichier,"%lf ",&(objects[nbObjects].inverse[count])));
+					count++;
+					if(fscanf(fichier,"%lf ",&(objects[nbObjects].inverse[count])));
+					count++;
+					if(fscanf(fichier,"%lf\n",&(objects[nbObjects].inverse[count])));
+					count++;
+				}
+				if(fscanf(fichier,"\n"));
 				nbObjects++;
+
+
 			}else{
-				for(i = 0; i<15; i++){
-					if(fscanf(fichier,"%lf ",&(camera.transfo[i])));
+				int count = 0;
+				int i = 0;
+				for(i = 0; i<4; i++){
+					if(fscanf(fichier,"%lf ",&(camera.transfo[count])));
+					count++;
+					if(fscanf(fichier,"%lf ",&(camera.transfo[count])));
+					count++;
+					if(fscanf(fichier,"%lf ",&(camera.transfo[count])));
+					count++;
+					if(fscanf(fichier,"%lf\n",&(camera.transfo[count])));
+					count++;
 				}
-				if(fscanf(fichier,"%lf  ",&(camera.transfo[i])));
-				for(i = 0; i<15; i++){
-					if(fscanf(fichier,"%lf ",&(camera.inverse[i])));
+				if(fscanf(fichier,"\n"));
+
+				count  = 0;
+				for(i = 0; i<4; i++){
+					if(fscanf(fichier,"%lf ",&(camera.inverse[count])));
+					count++;
+					if(fscanf(fichier,"%lf ",&(camera.inverse[count])));
+					count++;
+					if(fscanf(fichier,"%lf ",&(camera.inverse[count])));
+					count++;
+					if(fscanf(fichier,"%lf\n",&(camera.inverse[count])));
+					count++;
 				}
-				if(fscanf(fichier,"%lf\n",&(camera.inverse[i])));
+				if(fscanf(fichier,"\n"));
 			}
 		}
 	}
@@ -305,15 +281,15 @@ void doLevel1(int argc,char* argv[]){
 	initObjects(src);
 	printf("Init Object OK\n");
 	G3Xpoint canFocale = {1,0,0};
-	for(i = 0; i<32; i++){
-		for(j = 0; j<32; j++){
-			G3Xpoint canPixel = {0,i-16,j-16};
+	for(i = 0; i<IMAGE_SIZE; i++){
+		for(j = 0; j<IMAGE_SIZE; j++){
+			G3Xpoint canPixel = {0,i-IMAGE_SIZE/2 ,j-IMAGE_SIZE/2};
 			G3Xpoint pixel;
 			G3Xvector canRay;
 			G3Xvector ray;
 			G3Xsetvct(canRay,canFocale,canPixel);
 			g3x_ProdHMatVector(camera.transfo,canRay,ray);
-			g3x_ProdHMatVector(camera.transfo,canPixel,pixel);
+			g3x_ProdHMatPoint(camera.transfo,canPixel,pixel);
 			int lastInter = INT_MAX;
 			G3Xcolor toSet = {0,0,0};
 			int k = 0;
@@ -322,11 +298,11 @@ void doLevel1(int argc,char* argv[]){
 				G3Xvector inObjectRay;
 				G3Xpoint inObjectPixel;
 				g3x_ProdHMatVector(objects[k].inverse,ray,inObjectRay);
-				g3x_ProdHMatVector(objects[k].inverse,pixel,inObjectPixel);
+				g3x_ProdHMatPoint(objects[k].inverse,pixel,inObjectPixel);
 				G3Xpoint inObjectRi;
 				G3Xpoint ri;
 				if(objects[k].intersection(inObjectPixel,inObjectRay,inObjectRi) == 1){
-					g3x_ProdHMatVector(objects[k].transfo,inObjectRi, ri);
+					g3x_ProdHMatPoint(objects[k].transfo,inObjectRi, ri);
 					G3Xvector rayInter;
 					G3Xsetvct(pixel,ri,rayInter);
 					if(G3Xsqrvnorm(rayInter)<lastInter){
