@@ -12,6 +12,7 @@ void doLevel2(int argc,char* argv[]);
 void doLevel3(int argc,char* argv[]);
 void doLevel4(int argc,char* argv[]);
 void save(char * dst);
+void printMat(G3Xhmat mat);
 
 typedef struct{
 	G3Xcolor color;
@@ -25,7 +26,12 @@ Object objects[100];
 int nbObjects = 0;
 G3Xcolor image[IMAGE_SIZE][IMAGE_SIZE];
 /*****************************************************************************************************/
-
+void printMat(G3Xhmat mat){
+	printf("%lf\t%lf\t%lf\t%lf\n", mat[0], mat[4], mat[8], mat[12]);
+	printf("%lf\t%lf\t%lf\t%lf\n", mat[1], mat[5], mat[9], mat[13]);
+	printf("%lf\t%lf\t%lf\t%lf\n", mat[2], mat[6], mat[10], mat[14]);
+	printf("%lf\t%lf\t%lf\t%lf\n", mat[3], mat[7], mat[11], mat[15]);
+}
 void save(char * dst){
 	FILE* fichier = fopen(dst,"w");
 	fprintf(fichier, "P3\n");
@@ -75,62 +81,36 @@ void initObjects(char* src){
 						break;
 				}
 
+				if(fscanf(fichier,"%lf %lf %lf %lf\n", &(objects[nbObjects].transfo[0]), &(objects[nbObjects].transfo[4]), &(objects[nbObjects].transfo[8]), &(objects[nbObjects].transfo[12])));
+				if(fscanf(fichier,"%lf %lf %lf %lf\n", &(objects[nbObjects].transfo[1]), &(objects[nbObjects].transfo[5]), &(objects[nbObjects].transfo[9]), &(objects[nbObjects].transfo[13])));
+				if(fscanf(fichier,"%lf %lf %lf %lf\n", &(objects[nbObjects].transfo[2]), &(objects[nbObjects].transfo[6]), &(objects[nbObjects].transfo[10]), &(objects[nbObjects].transfo[14])));
+				if(fscanf(fichier,"%lf %lf %lf %lf\n", &(objects[nbObjects].transfo[3]), &(objects[nbObjects].transfo[7]), &(objects[nbObjects].transfo[11]), &(objects[nbObjects].transfo[15])));
 
-				int count = 0;
-				int i = 0;
-				for(i = 0; i<4; i++){
-					if(fscanf(fichier,"%lf ",&(objects[nbObjects].transfo[count])));
-					count++;
-					if(fscanf(fichier,"%lf ",&(objects[nbObjects].transfo[count])));
-					count++;
-					if(fscanf(fichier,"%lf ",&(objects[nbObjects].transfo[count])));
-					count++;
-					if(fscanf(fichier,"%lf\n",&(objects[nbObjects].transfo[count])));
-					count++;
-				}
 				if(fscanf(fichier,"\n"));
 
-				count  = 0;
-				for(i = 0; i<4; i++){
-					if(fscanf(fichier,"%lf ",&(objects[nbObjects].inverse[count])));
-					count++;
-					if(fscanf(fichier,"%lf ",&(objects[nbObjects].inverse[count])));
-					count++;
-					if(fscanf(fichier,"%lf ",&(objects[nbObjects].inverse[count])));
-					count++;
-					if(fscanf(fichier,"%lf\n",&(objects[nbObjects].inverse[count])));
-					count++;
-				}
+				if(fscanf(fichier,"%lf %lf %lf %lf\n", &(objects[nbObjects].inverse[0]), &(objects[nbObjects].inverse[4]), &(objects[nbObjects].inverse[8]), &(objects[nbObjects].inverse[12])));
+				if(fscanf(fichier,"%lf %lf %lf %lf\n", &(objects[nbObjects].inverse[1]), &(objects[nbObjects].inverse[5]), &(objects[nbObjects].inverse[9]), &(objects[nbObjects].inverse[13])));
+				if(fscanf(fichier,"%lf %lf %lf %lf\n", &(objects[nbObjects].inverse[2]), &(objects[nbObjects].inverse[6]), &(objects[nbObjects].inverse[10]), &(objects[nbObjects].inverse[14])));
+				if(fscanf(fichier,"%lf %lf %lf %lf\n", &(objects[nbObjects].inverse[3]), &(objects[nbObjects].inverse[7]), &(objects[nbObjects].inverse[11]), &(objects[nbObjects].inverse[15])));
+
 				if(fscanf(fichier,"\n"));
 				nbObjects++;
 
 
 			}else{
-				int count = 0;
-				int i = 0;
-				for(i = 0; i<4; i++){
-					if(fscanf(fichier,"%lf ",&(camera.transfo[count])));
-					count++;
-					if(fscanf(fichier,"%lf ",&(camera.transfo[count])));
-					count++;
-					if(fscanf(fichier,"%lf ",&(camera.transfo[count])));
-					count++;
-					if(fscanf(fichier,"%lf\n",&(camera.transfo[count])));
-					count++;
-				}
+
+				if(fscanf(fichier,"%lf %lf %lf %lf\n", &(camera.transfo[0]), &(camera.transfo[4]), &(camera.transfo[8]), &(camera.transfo[12])));
+				if(fscanf(fichier,"%lf %lf %lf %lf\n", &(camera.transfo[1]), &(camera.transfo[5]), &(camera.transfo[9]), &(camera.transfo[13])));
+				if(fscanf(fichier,"%lf %lf %lf %lf\n", &(camera.transfo[2]), &(camera.transfo[6]), &(camera.transfo[10]), &(camera.transfo[14])));
+				if(fscanf(fichier,"%lf %lf %lf %lf\n", &(camera.transfo[3]), &(camera.transfo[7]), &(camera.transfo[11]), &(camera.transfo[15])));
+
 				if(fscanf(fichier,"\n"));
 
-				count  = 0;
-				for(i = 0; i<4; i++){
-					if(fscanf(fichier,"%lf ",&(camera.inverse[count])));
-					count++;
-					if(fscanf(fichier,"%lf ",&(camera.inverse[count])));
-					count++;
-					if(fscanf(fichier,"%lf ",&(camera.inverse[count])));
-					count++;
-					if(fscanf(fichier,"%lf\n",&(camera.inverse[count])));
-					count++;
-				}
+				if(fscanf(fichier,"%lf %lf %lf %lf\n", &(camera.inverse[0]), &(camera.inverse[4]), &(camera.inverse[8]), &(camera.inverse[12])));
+				if(fscanf(fichier,"%lf %lf %lf %lf\n", &(camera.inverse[1]), &(camera.inverse[5]), &(camera.inverse[9]), &(camera.inverse[13])));
+				if(fscanf(fichier,"%lf %lf %lf %lf\n", &(camera.inverse[2]), &(camera.inverse[6]), &(camera.inverse[10]), &(camera.inverse[14])));
+				if(fscanf(fichier,"%lf %lf %lf %lf\n", &(camera.inverse[3]), &(camera.inverse[7]), &(camera.inverse[11]), &(camera.inverse[15])));
+
 				if(fscanf(fichier,"\n"));
 			}
 		}
@@ -321,6 +301,11 @@ void doLevel1(int argc,char* argv[]){
 		}
 	}
 	save(getOpt("-o",argc,argv));
+	for(i = 0; i<nbObjects;i++){
+		printMat(objects[i].inverse);
+		printf("\n");
+		printMat(objects[i].transfo);
+	}
 }
 
 void doLevel2(int argc,char* argv[]){
