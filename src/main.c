@@ -1,8 +1,8 @@
 #include <g3x.h>
 #include <limits.h>
-#define IMAGE_SIZE 64
+#define IMAGE_SIZE 512
 
-int rayInterCercle(G3Xpoint pos,G3Xvector dir, G3Xpoint ri);
+int rayInterSphere(G3Xpoint pos,G3Xvector dir, G3Xpoint ri);
 int rayInterTriangle(G3Xpoint pos, G3Xvector dir, G3Xpoint ri);
 int rayInterRectangle(G3Xpoint pos, G3Xvector dir, G3Xpoint ri);
 void initObjects(char* src);
@@ -13,6 +13,10 @@ void doLevel3(int argc,char* argv[]);
 void doLevel4(int argc,char* argv[]);
 void save(char * dst);
 void printMat(G3Xhmat mat);
+void readMat(FILE* fichier,G3Xhmat mat);
+void prodMatV(G3Xhmat mat, G3Xvector v,G3Xvector r);
+void prodMatP(G3Xhmat mat, G3Xpoint p, G3Xpoint r);
+void prodMatM(G3Xhmat a, G3Xhmat b, G3Xhmat r);
 
 typedef struct{
 	G3Xcolor color;
@@ -26,12 +30,39 @@ Object objects[100];
 int nbObjects = 0;
 G3Xcolor image[IMAGE_SIZE][IMAGE_SIZE];
 /*****************************************************************************************************/
+
+void prodMatV(G3Xhmat mat, G3Xvector v, G3Xvector r){
+	r[0] = v[0]*mat[0] + v[1]*mat[4] + v[2]*mat[8];
+	r[1] = v[0]*mat[1] + v[1]*mat[5] + v[2]*mat[9];
+	r[2] = v[0]*mat[2] + v[1]*mat[6] + v[2]*mat[10];
+	/*printf("vector:\t%lf\t%lf\t%lf\n",r[0],r[1],r[2]);*/
+}
+
+void prodMatP(G3Xhmat mat, G3Xpoint p, G3Xpoint r){
+	r[0] = p[0]*mat[0] + p[1]*mat[4] + p[2]*mat[8] + mat[12];
+	r[1] = p[0]*mat[1] + p[1]*mat[5] + p[2]*mat[9] + mat[13];
+	r[2] = p[0]*mat[2] + p[1]*mat[6] + p[2]*mat[10] + mat[14];
+	/*printf("point:\t%lf\t%lf\t%lf\n",r[0],r[1],r[2]);*/
+}
+
+void prodMatM(G3Xhmat a, G3Xhmat b, G3Xhmat r){
+	/*TO DO*/
+}
+
+void readMat(FILE* fichier,G3Xhmat mat){
+	if(fscanf(fichier,"%lf %lf %lf %lf\n", &(mat[0]), &(mat[4]), &(mat[8]), &(mat[12])));
+	if(fscanf(fichier,"%lf %lf %lf %lf\n", &(mat[1]), &(mat[5]), &(mat[9]), &(mat[13])));
+	if(fscanf(fichier,"%lf %lf %lf %lf\n", &(mat[2]), &(mat[6]), &(mat[10]), &(mat[14])));
+	if(fscanf(fichier,"%lf %lf %lf %lf\n", &(mat[3]), &(mat[7]), &(mat[11]), &(mat[15])));
+}
+
 void printMat(G3Xhmat mat){
 	printf("%lf\t%lf\t%lf\t%lf\n", mat[0], mat[4], mat[8], mat[12]);
 	printf("%lf\t%lf\t%lf\t%lf\n", mat[1], mat[5], mat[9], mat[13]);
 	printf("%lf\t%lf\t%lf\t%lf\n", mat[2], mat[6], mat[10], mat[14]);
 	printf("%lf\t%lf\t%lf\t%lf\n", mat[3], mat[7], mat[11], mat[15]);
 }
+
 void save(char * dst){
 	FILE* fichier = fopen(dst,"w");
 	fprintf(fichier, "P3\n");
@@ -56,7 +87,7 @@ void initObjects(char* src){
 			if(type != 4){
 				switch(type){
 					case 0 :
-						objects[nbObjects].intersection = rayInterCercle;
+						objects[nbObjects].intersection = rayInterSphere;
 						objects[nbObjects].color[0] = 255;
 						objects[nbObjects].color[1] = 0;
 						objects[nbObjects].color[2] = 0 ;
@@ -81,17 +112,11 @@ void initObjects(char* src){
 						break;
 				}
 
-				if(fscanf(fichier,"%lf %lf %lf %lf\n", &(objects[nbObjects].transfo[0]), &(objects[nbObjects].transfo[4]), &(objects[nbObjects].transfo[8]), &(objects[nbObjects].transfo[12])));
-				if(fscanf(fichier,"%lf %lf %lf %lf\n", &(objects[nbObjects].transfo[1]), &(objects[nbObjects].transfo[5]), &(objects[nbObjects].transfo[9]), &(objects[nbObjects].transfo[13])));
-				if(fscanf(fichier,"%lf %lf %lf %lf\n", &(objects[nbObjects].transfo[2]), &(objects[nbObjects].transfo[6]), &(objects[nbObjects].transfo[10]), &(objects[nbObjects].transfo[14])));
-				if(fscanf(fichier,"%lf %lf %lf %lf\n", &(objects[nbObjects].transfo[3]), &(objects[nbObjects].transfo[7]), &(objects[nbObjects].transfo[11]), &(objects[nbObjects].transfo[15])));
+				readMat(fichier,objects[nbObjects].transfo);
 
 				if(fscanf(fichier,"\n"));
-
-				if(fscanf(fichier,"%lf %lf %lf %lf\n", &(objects[nbObjects].inverse[0]), &(objects[nbObjects].inverse[4]), &(objects[nbObjects].inverse[8]), &(objects[nbObjects].inverse[12])));
-				if(fscanf(fichier,"%lf %lf %lf %lf\n", &(objects[nbObjects].inverse[1]), &(objects[nbObjects].inverse[5]), &(objects[nbObjects].inverse[9]), &(objects[nbObjects].inverse[13])));
-				if(fscanf(fichier,"%lf %lf %lf %lf\n", &(objects[nbObjects].inverse[2]), &(objects[nbObjects].inverse[6]), &(objects[nbObjects].inverse[10]), &(objects[nbObjects].inverse[14])));
-				if(fscanf(fichier,"%lf %lf %lf %lf\n", &(objects[nbObjects].inverse[3]), &(objects[nbObjects].inverse[7]), &(objects[nbObjects].inverse[11]), &(objects[nbObjects].inverse[15])));
+				
+				readMat(fichier,objects[nbObjects].inverse);
 
 				if(fscanf(fichier,"\n"));
 				nbObjects++;
@@ -99,17 +124,11 @@ void initObjects(char* src){
 
 			}else{
 
-				if(fscanf(fichier,"%lf %lf %lf %lf\n", &(camera.transfo[0]), &(camera.transfo[4]), &(camera.transfo[8]), &(camera.transfo[12])));
-				if(fscanf(fichier,"%lf %lf %lf %lf\n", &(camera.transfo[1]), &(camera.transfo[5]), &(camera.transfo[9]), &(camera.transfo[13])));
-				if(fscanf(fichier,"%lf %lf %lf %lf\n", &(camera.transfo[2]), &(camera.transfo[6]), &(camera.transfo[10]), &(camera.transfo[14])));
-				if(fscanf(fichier,"%lf %lf %lf %lf\n", &(camera.transfo[3]), &(camera.transfo[7]), &(camera.transfo[11]), &(camera.transfo[15])));
+				readMat(fichier,camera.transfo);
 
 				if(fscanf(fichier,"\n"));
-
-				if(fscanf(fichier,"%lf %lf %lf %lf\n", &(camera.inverse[0]), &(camera.inverse[4]), &(camera.inverse[8]), &(camera.inverse[12])));
-				if(fscanf(fichier,"%lf %lf %lf %lf\n", &(camera.inverse[1]), &(camera.inverse[5]), &(camera.inverse[9]), &(camera.inverse[13])));
-				if(fscanf(fichier,"%lf %lf %lf %lf\n", &(camera.inverse[2]), &(camera.inverse[6]), &(camera.inverse[10]), &(camera.inverse[14])));
-				if(fscanf(fichier,"%lf %lf %lf %lf\n", &(camera.inverse[3]), &(camera.inverse[7]), &(camera.inverse[11]), &(camera.inverse[15])));
+				
+				readMat(fichier,camera.inverse);
 
 				if(fscanf(fichier,"\n"));
 			}
@@ -118,15 +137,18 @@ void initObjects(char* src){
 	fclose(fichier);
 }
 
-int rayInterCercle(G3Xpoint pos,G3Xvector dir, G3Xpoint ri){
+int rayInterSphere(G3Xpoint pos,G3Xvector dir, G3Xpoint ri){
 	double ps = G3Xprodscal(pos,dir);
 	if(ps>= 0 ){
 		return 0;
 	}
+
 	double d2 = G3Xsqrvnorm(pos) - ps*ps;
-	if(d2>= 1){
+
+	if(d2 >= 1){
 		return 0;
 	}
+
 	double t = -ps - sqrt(1-d2);
 	/*j'ai mon contact*/
 	ri[0] = pos[0] + t * dir[0];
@@ -148,9 +170,9 @@ int rayInterTriangle(G3Xpoint pos, G3Xvector dir, G3Xpoint ri){
 	G3Xpoint proj =  {
 		0, 
 		k * dir[1] + pos[1] , 
-		k * dir[2] + pos[2]};
-	if(proj[0] != 0 || 
-		proj[1] < 0 || 
+		k * dir[2] + pos[2]
+	};
+	if( proj[1] < 0 || 
 		proj[2] < 0 || 
 		proj[1] + proj[2] > 1){
 
@@ -198,6 +220,15 @@ int rayInterRectangle(G3Xpoint pos, G3Xvector dir, G3Xpoint ri){
 					proj[0] = 0.5; 
 					proj[1] = k * dir[1] + pos[1]; 
 					proj[2] = k * dir[2] + pos[2];
+
+
+					if( proj[1] > -0.5 &&
+						proj[1] < 0.5 &&
+						proj[2] > -0.5 &&
+						proj[2] < 0.5 ){
+						ri = proj;
+						return 1;
+					}
 					break;
 				case 1:
 					k = (-0.5-pos[0])/dir[0];
@@ -205,6 +236,15 @@ int rayInterRectangle(G3Xpoint pos, G3Xvector dir, G3Xpoint ri){
 					proj[0] = -0.5; 
 					proj[1] = k * dir[1] + pos[1]; 
 					proj[2] = k * dir[2] + pos[2];
+
+
+					if( proj[1] > -0.5 &&
+						proj[1] < 0.5 &&
+						proj[2] > -0.5 &&
+						proj[2] < 0.5 ){
+						ri = proj;
+						return 1;
+					}
 					break;
 				case 2:
 					k = (0.5-pos[1])/dir[1];
@@ -212,6 +252,15 @@ int rayInterRectangle(G3Xpoint pos, G3Xvector dir, G3Xpoint ri){
 					proj[0] = k * dir[0] + pos[0];
 					proj[1] = 0.5;  
 					proj[2] = k * dir[2] + pos[2];
+
+
+					if( proj[0] > -0.5 &&
+						proj[0] < 0.5 &&
+						proj[2] > -0.5 &&
+						proj[2] < 0.5 ){
+						ri = proj;
+						return 1;
+					}
 					break;
 				case 3:
 					k = (-0.5-pos[1])/dir[1];
@@ -219,6 +268,15 @@ int rayInterRectangle(G3Xpoint pos, G3Xvector dir, G3Xpoint ri){
 					proj[0] = k * dir[0] + pos[0];
 					proj[1] = -0.5; 
 					proj[2] = k * dir[2] + pos[2];
+
+
+					if( proj[0] > -0.5 &&
+						proj[0] < 0.5 &&
+						proj[2] > -0.5 &&
+						proj[2] < 0.5 ){
+						ri = proj;
+						return 1;
+					}
 					break;
 				case 4:
 					k = (0.5-pos[2])/dir[2];
@@ -226,6 +284,15 @@ int rayInterRectangle(G3Xpoint pos, G3Xvector dir, G3Xpoint ri){
 					proj[0] = k * dir[0] + pos[0];
 					proj[1] = k * dir[1] + pos[1];
 					proj[2] = 0.5;
+
+
+					if( proj[0] > -0.5 &&
+						proj[0] < 0.5 &&
+						proj[1] > -0.5 &&
+						proj[1] < 0.5 ){
+						ri = proj;
+						return 1;
+					}
 					break;
 				case 5:
 					k = (-0.5-pos[2])/dir[2];
@@ -233,22 +300,22 @@ int rayInterRectangle(G3Xpoint pos, G3Xvector dir, G3Xpoint ri){
 					proj[0] = k * dir[0] + pos[0];
 					proj[1] = k * dir[1] + pos[1];
 					proj[2] = -0.5;
-					break;
-			}
 
-			if( proj[0] < -0.5 ||
-				proj[0] > 0,5 ||
-				proj[1] < -0.5 ||
-				proj[1] > 0,5 ||
-				proj[2] < -0.5 ||
-				proj[2] > 0,5 ){
-				return 0;
+
+					if( proj[0] > -0.5 &&
+						proj[0] < 0.5 &&
+						proj[1] > -0.5 &&
+						proj[1] < 0.5 ){
+						ri = proj;
+						return 1;
+					}
+					break;
 			}
 			ri = proj;
 		}
 	}
 
-	return 1;
+	return 0;
 
 }
 
@@ -263,33 +330,37 @@ void doLevel1(int argc,char* argv[]){
 	G3Xpoint canFocale = {1,0,0};
 	for(i = 0; i<IMAGE_SIZE; i++){
 		for(j = 0; j<IMAGE_SIZE; j++){
-			G3Xpoint canPixel = {0,i-IMAGE_SIZE/2 ,j-IMAGE_SIZE/2};
-			G3Xpoint pixel;
+			G3Xpoint canPixel = {0,(i-(IMAGE_SIZE/2.0))/IMAGE_SIZE ,(j-(IMAGE_SIZE/2.0))/IMAGE_SIZE};
 			G3Xvector canRay;
-			G3Xvector ray;
 			G3Xsetvct(canRay,canFocale,canPixel);
-			g3x_ProdHMatVector(camera.transfo,canRay,ray);
-			g3x_ProdHMatPoint(camera.transfo,canPixel,pixel);
-			int lastInter = INT_MAX;
-			G3Xcolor toSet = {0,0,0};
-			int k = 0;
+			
+			G3Xvector ray;
+			prodMatV(camera.transfo,canRay,ray);
+			
+			G3Xpoint pixel;
+			prodMatP(camera.transfo,canPixel,pixel);
+			
+			double lastInter = INT_MAX;
 
+			G3Xcolor toSet = {0,0,0};
+			
+			int k = 0;
 			for(k = 0; k<nbObjects;k++){
 				G3Xvector inObjectRay;
 				G3Xpoint inObjectPixel;
-				g3x_ProdHMatVector(objects[k].inverse,ray,inObjectRay);
-				g3x_ProdHMatPoint(objects[k].inverse,pixel,inObjectPixel);
+				prodMatV(objects[k].inverse,ray,inObjectRay);
+				prodMatP(objects[k].inverse,pixel,inObjectPixel);
 				G3Xpoint inObjectRi;
-				G3Xpoint ri;
 				if(objects[k].intersection(inObjectPixel,inObjectRay,inObjectRi) == 1){
-					g3x_ProdHMatPoint(objects[k].transfo,inObjectRi, ri);
+					G3Xpoint ri;
+					prodMatP(objects[k].transfo,inObjectRi, ri);
 					G3Xvector rayInter;
 					G3Xsetvct(pixel,ri,rayInter);
+					
 					if(G3Xsqrvnorm(rayInter)<lastInter){
 						toSet[0] = objects[k].color[0];
 						toSet[1] = objects[k].color[1];
 						toSet[2] = objects[k].color[2];
-
 					}
 				}
 				image[i][j][0] = toSet[0];
@@ -301,11 +372,11 @@ void doLevel1(int argc,char* argv[]){
 		}
 	}
 	save(getOpt("-o",argc,argv));
-	for(i = 0; i<nbObjects;i++){
+	/*for(i = 0; i<nbObjects;i++){
 		printMat(objects[i].inverse);
 		printf("\n");
 		printMat(objects[i].transfo);
-	}
+	}*/
 }
 
 void doLevel2(int argc,char* argv[]){
