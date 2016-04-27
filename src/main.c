@@ -4,7 +4,7 @@
 
 int rayInterSphere(G3Xpoint pos,G3Xvector dir, G3Xpoint ri);
 int rayInterTriangle(G3Xpoint pos, G3Xvector dir, G3Xpoint ri);
-int rayInterRectangle(G3Xpoint pos, G3Xvector dir, G3Xpoint ri);
+int rayInterCube(G3Xpoint pos, G3Xvector dir, G3Xpoint ri);
 void initObjects(char* src);
 char* getOpt(char* opt,int argc,char* argv[]);
 void doLevel1(int argc,char* argv[]);
@@ -93,7 +93,7 @@ void initObjects(char* src){
 						objects[nbObjects].color[2] = 0 ;
 						break;
 					case 1 :
-						objects[nbObjects].intersection = rayInterRectangle;
+						objects[nbObjects].intersection = rayInterCube;
 						objects[nbObjects].color[0] = 0;
 						objects[nbObjects].color[1] = 255;
 						objects[nbObjects].color[2] = 0;
@@ -142,8 +142,10 @@ int rayInterSphere(G3Xpoint pos,G3Xvector dir, G3Xpoint ri){
 	if(ps>= 0 ){
 		return 0;
 	}
+	/*double d2 = G3Xsqrvnorm(pos) - (ps*ps); */
 
-	double d2 = G3Xsqrvnorm(pos) - ps*ps;
+	double p2 = ps/-G3Xvnorm(dir);
+	double d2 = G3Xsqrvnorm(pos) - (p2 * p2);
 
 	if(d2 >= 1){
 		return 0;
@@ -169,7 +171,7 @@ int rayInterTriangle(G3Xpoint pos, G3Xvector dir, G3Xpoint ri){
 
 	G3Xpoint proj =  {
 		0, 
-		k * dir[1] + pos[1] , 
+		k * dir[1] + pos[1], 
 		k * dir[2] + pos[2]
 	};
 	if( proj[1] < 0 || 
@@ -182,7 +184,7 @@ int rayInterTriangle(G3Xpoint pos, G3Xvector dir, G3Xpoint ri){
 	return 1;
 }
 
-int rayInterRectangle(G3Xpoint pos, G3Xvector dir, G3Xpoint ri){
+int rayInterCube(G3Xpoint pos, G3Xvector dir, G3Xpoint ri){
 	G3Xvector normal[6] = {
 		{1,0,0},
 		{-1,0,0},
@@ -222,10 +224,10 @@ int rayInterRectangle(G3Xpoint pos, G3Xvector dir, G3Xpoint ri){
 					proj[2] = k * dir[2] + pos[2];
 
 
-					if( proj[1] > -0.5 &&
-						proj[1] < 0.5 &&
-						proj[2] > -0.5 &&
-						proj[2] < 0.5 ){
+					if( proj[1] >= -0.5 &&
+						proj[1] <= 0.5 &&
+						proj[2] >= -0.5 &&
+						proj[2] <= 0.5 ){
 						ri = proj;
 						return 1;
 					}
@@ -238,10 +240,10 @@ int rayInterRectangle(G3Xpoint pos, G3Xvector dir, G3Xpoint ri){
 					proj[2] = k * dir[2] + pos[2];
 
 
-					if( proj[1] > -0.5 &&
-						proj[1] < 0.5 &&
-						proj[2] > -0.5 &&
-						proj[2] < 0.5 ){
+					if( proj[1] >= -0.5 &&
+						proj[1] <= 0.5 &&
+						proj[2] >= -0.5 &&
+						proj[2] <= 0.5 ){
 						ri = proj;
 						return 1;
 					}
@@ -254,10 +256,10 @@ int rayInterRectangle(G3Xpoint pos, G3Xvector dir, G3Xpoint ri){
 					proj[2] = k * dir[2] + pos[2];
 
 
-					if( proj[0] > -0.5 &&
-						proj[0] < 0.5 &&
-						proj[2] > -0.5 &&
-						proj[2] < 0.5 ){
+					if( proj[0] >= -0.5 &&
+						proj[0] <= 0.5 &&
+						proj[2] >= -0.5 &&
+						proj[2] <= 0.5 ){
 						ri = proj;
 						return 1;
 					}
@@ -270,10 +272,10 @@ int rayInterRectangle(G3Xpoint pos, G3Xvector dir, G3Xpoint ri){
 					proj[2] = k * dir[2] + pos[2];
 
 
-					if( proj[0] > -0.5 &&
-						proj[0] < 0.5 &&
-						proj[2] > -0.5 &&
-						proj[2] < 0.5 ){
+					if( proj[0] >= -0.5 &&
+						proj[0] <= 0.5 &&
+						proj[2] >= -0.5 &&
+						proj[2] <= 0.5 ){
 						ri = proj;
 						return 1;
 					}
@@ -286,10 +288,10 @@ int rayInterRectangle(G3Xpoint pos, G3Xvector dir, G3Xpoint ri){
 					proj[2] = 0.5;
 
 
-					if( proj[0] > -0.5 &&
-						proj[0] < 0.5 &&
-						proj[1] > -0.5 &&
-						proj[1] < 0.5 ){
+					if( proj[0] >= -0.5 &&
+						proj[0] <= 0.5 &&
+						proj[1] >= -0.5 &&
+						proj[1] <= 0.5 ){
 						ri = proj;
 						return 1;
 					}
@@ -302,10 +304,10 @@ int rayInterRectangle(G3Xpoint pos, G3Xvector dir, G3Xpoint ri){
 					proj[2] = -0.5;
 
 
-					if( proj[0] > -0.5 &&
-						proj[0] < 0.5 &&
-						proj[1] > -0.5 &&
-						proj[1] < 0.5 ){
+					if( proj[0] >= -0.5 &&
+						proj[0] <= 0.5 &&
+						proj[1] >= -0.5 &&
+						proj[1] <= 0.5 ){
 						ri = proj;
 						return 1;
 					}
