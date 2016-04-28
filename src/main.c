@@ -5,6 +5,7 @@
 int rayInterSphere(G3Xpoint pos,G3Xvector dir, G3Xpoint ri);
 int rayInterTriangle(G3Xpoint pos, G3Xvector dir, G3Xpoint ri);
 int rayInterCube(G3Xpoint pos, G3Xvector dir, G3Xpoint ri);
+int rayInterCylindre(G3Xpoint pos,G3Xvector dir, G3Xpoint ri);
 void initObjects(char* src);
 char* getOpt(char* opt,int argc,char* argv[]);
 void doLevel1(int argc,char* argv[]);
@@ -105,7 +106,7 @@ void initObjects(char* src){
 						objects[nbObjects].color[2] = 255;
 						break;
 					case 3 :
-						objects[nbObjects].intersection = NULL;
+						objects[nbObjects].intersection = rayInterCylindre;
 						objects[nbObjects].color[0] = 255;
 						objects[nbObjects].color[1] = 255;
 						objects[nbObjects].color[2] = 0;
@@ -142,17 +143,16 @@ int rayInterSphere(G3Xpoint pos,G3Xvector dir, G3Xpoint ri){
 	if(ps>= 0 ){
 		return 0;
 	}
-	/*double d2 = G3Xsqrvnorm(pos) - (ps*ps); */
 
-	double p2 = ps/-G3Xvnorm(dir);
-	double d2 = G3Xsqrvnorm(pos) - (p2 * p2);
+	double p2 = (ps*ps)/G3Xsqrvnorm(dir);
+	double d2 = G3Xsqrvnorm(pos) - p2;
 
 	if(d2 >= 1){
 		return 0;
 	}
 
 	double t = -ps - sqrt(1-d2);
-	/*j'ai mon contact*/
+
 	ri[0] = pos[0] + t * dir[0];
 	ri[1] = pos[1] + t * dir[1];
 	ri[2] = pos[2] + t * dir[2];
@@ -160,31 +160,100 @@ int rayInterSphere(G3Xpoint pos,G3Xvector dir, G3Xpoint ri){
 	return 1;
 }
 
+int rayInterCylindre(G3Xpoint pos,G3Xvector dir, G3Xpoint ri){
+	if(G3Xprodscal(pos,dir)>=0){
+		return 0;
+	}
+
+	double ps = pos[0]*dir[0] + pos[1]*dir[1];
+	double p2 = ps*ps/(dir[0]*dir[0]+dir[1]*dir[1]);
+	double d2 = (pos[0]*pos[0]+pos[1]*pos[1]) - p2;
+
+	if(d2 <= 1){
+		double t = -ps - sqrt(1-d2);
+		ri[0] = pos[0] + t * dir[0];
+		ri[1] = pos[1] + t * dir[1];
+		ri[2] = pos[2] + t * dir[2];
+
+		if(ri[2]<=0.5 && ri[2] >= -0.5){
+			return 1;
+		}
+	}
+
+	G3Xvector normal[2] = {
+		{1,0,0},
+		{-1,0,0}
+	};
+
+	int normalIndex = -1;
+	double psf = G3Xprodscal(normal[0],dir);
+
+	if(psf>0){
+			normalIndex = 1;
+	}else{
+		if(psf != 0){
+			normalIndex = 0;
+		}
+	}
+
+	double k = 0;
+	switch(normalIndex){
+		case 0:
+			k = (0.5-pos[2])/dir[2];
+			ri[0] = k * dir[0] + pos[0]; 
+			ri[1] = k * dir[1] + pos[1]; 
+			ri[2] = 0.5;
+
+
+			if( ri[0]<=1 &&
+				ri[1]<= 1 &&
+				(ri[0]*ri[0])+(ri[1]*ri[1]) <= 1){
+				return 1;
+			}
+			break;
+		case 1:
+			k = (-0.5-pos[2])/dir[2];
+			ri[0] = k * dir[0] + pos[0]; 
+			ri[1] = k * dir[1] + pos[1]; 
+			ri[2] = -0.5;
+
+
+			if( ri[0]<=1 &&
+				ri[1]<= 1 &&
+				(ri[0]*ri[0])+(ri[1]*ri[1]) <= 1){
+				return 1;
+			}
+			break;
+	}
+	
+	return 0;
+
+}
 
 int rayInterTriangle(G3Xpoint pos, G3Xvector dir, G3Xpoint ri){
 	G3Xvector normal = {1,0,0};
-	double ps = G3Xprodscal(normal,dir);
-	if(ps>=0){
+	if(G3Xprodscal(normal,dir)>=0){
 		return 0;
 	}
 	double k = (0-pos[0])/dir[0];
 
-	G3Xpoint proj =  {
-		0, 
-		k * dir[1] + pos[1], 
-		k * dir[2] + pos[2]
-	};
-	if( proj[1] < 0 || 
-		proj[2] < 0 || 
-		proj[1] + proj[2] > 1){
+	ri[0] = 0;
+	ri[1] = k * dir[1] + pos[1];
+	ri[2] = k * dir[2] + pos[2];
+
+	if( ri[1] < 0 || 
+		ri[2] < 0 || 
+		ri[1] + ri[2] > 1){
 
 		return 0;
 	}
-	ri = proj;
 	return 1;
 }
 
 int rayInterCube(G3Xpoint pos, G3Xvector dir, G3Xpoint ri){
+	if(G3Xprodscal(pos,dir)>=0){
+		return 0;
+	}
 	G3Xvector normal[6] = {
 		{1,0,0},
 		{-1,0,0},
@@ -215,105 +284,98 @@ int rayInterCube(G3Xpoint pos, G3Xvector dir, G3Xpoint ri){
 	for(i = 0; i<6; i++){
 		if(flags[i] == 1){
 			double k = 0;
-			G3Xpoint proj = {0,0,0};
+
 			switch(i){
 				case 0:
 					k = (0.5-pos[0])/dir[0];
-					proj[0] = 0.5; 
-					proj[1] = k * dir[1] + pos[1]; 
-					proj[2] = k * dir[2] + pos[2];
+					ri[0] = 0.5; 
+					ri[1] = k * dir[1] + pos[1]; 
+					ri[2] = k * dir[2] + pos[2];
 
 
-					if( proj[1] >= -0.5 &&
-						proj[1] <= 0.5 &&
-						proj[2] >= -0.5 &&
-						proj[2] <= 0.5 ){
-						ri = proj;
+					if( ri[1] >= -0.5 &&
+						ri[1] <= 0.5 &&
+						ri[2] >= -0.5 &&
+						ri[2] <= 0.5 ){
 						return 1;
 					}
 					break;
 				case 1:
 					k = (-0.5-pos[0])/dir[0];
 
-					proj[0] = -0.5; 
-					proj[1] = k * dir[1] + pos[1]; 
-					proj[2] = k * dir[2] + pos[2];
+					ri[0] = -0.5; 
+					ri[1] = k * dir[1] + pos[1]; 
+					ri[2] = k * dir[2] + pos[2];
 
 
-					if( proj[1] >= -0.5 &&
-						proj[1] <= 0.5 &&
-						proj[2] >= -0.5 &&
-						proj[2] <= 0.5 ){
-						ri = proj;
+					if( ri[1] >= -0.5 &&
+						ri[1] <= 0.5 &&
+						ri[2] >= -0.5 &&
+						ri[2] <= 0.5 ){
 						return 1;
 					}
 					break;
 				case 2:
 					k = (0.5-pos[1])/dir[1];
 
-					proj[0] = k * dir[0] + pos[0];
-					proj[1] = 0.5;  
-					proj[2] = k * dir[2] + pos[2];
+					ri[0] = k * dir[0] + pos[0];
+					ri[1] = 0.5;  
+					ri[2] = k * dir[2] + pos[2];
 
 
-					if( proj[0] >= -0.5 &&
-						proj[0] <= 0.5 &&
-						proj[2] >= -0.5 &&
-						proj[2] <= 0.5 ){
-						ri = proj;
+					if( ri[0] >= -0.5 &&
+						ri[0] <= 0.5 &&
+						ri[2] >= -0.5 &&
+						ri[2] <= 0.5 ){
 						return 1;
 					}
 					break;
 				case 3:
 					k = (-0.5-pos[1])/dir[1];
 
-					proj[0] = k * dir[0] + pos[0];
-					proj[1] = -0.5; 
-					proj[2] = k * dir[2] + pos[2];
+					ri[0] = k * dir[0] + pos[0];
+					ri[1] = -0.5; 
+					ri[2] = k * dir[2] + pos[2];
 
 
-					if( proj[0] >= -0.5 &&
-						proj[0] <= 0.5 &&
-						proj[2] >= -0.5 &&
-						proj[2] <= 0.5 ){
-						ri = proj;
+					if( ri[0] >= -0.5 &&
+						ri[0] <= 0.5 &&
+						ri[2] >= -0.5 &&
+						ri[2] <= 0.5 ){
 						return 1;
 					}
 					break;
 				case 4:
 					k = (0.5-pos[2])/dir[2];
 
-					proj[0] = k * dir[0] + pos[0];
-					proj[1] = k * dir[1] + pos[1];
-					proj[2] = 0.5;
+					ri[0] = k * dir[0] + pos[0];
+					ri[1] = k * dir[1] + pos[1];
+					ri[2] = 0.5;
 
 
-					if( proj[0] >= -0.5 &&
-						proj[0] <= 0.5 &&
-						proj[1] >= -0.5 &&
-						proj[1] <= 0.5 ){
-						ri = proj;
+					if( ri[0] >= -0.5 &&
+						ri[0] <= 0.5 &&
+						ri[1] >= -0.5 &&
+						ri[1] <= 0.5 ){
 						return 1;
 					}
 					break;
 				case 5:
 					k = (-0.5-pos[2])/dir[2];
 
-					proj[0] = k * dir[0] + pos[0];
-					proj[1] = k * dir[1] + pos[1];
-					proj[2] = -0.5;
+					ri[0] = k * dir[0] + pos[0];
+					ri[1] = k * dir[1] + pos[1];
+					ri[2] = -0.5;
 
 
-					if( proj[0] >= -0.5 &&
-						proj[0] <= 0.5 &&
-						proj[1] >= -0.5 &&
-						proj[1] <= 0.5 ){
-						ri = proj;
+					if( ri[0] >= -0.5 &&
+						ri[0] <= 0.5 &&
+						ri[1] >= -0.5 &&
+						ri[1] <= 0.5 ){
 						return 1;
 					}
 					break;
 			}
-			ri = proj;
 		}
 	}
 
@@ -374,11 +436,6 @@ void doLevel1(int argc,char* argv[]){
 		}
 	}
 	save(getOpt("-o",argc,argv));
-	/*for(i = 0; i<nbObjects;i++){
-		printMat(objects[i].inverse);
-		printf("\n");
-		printMat(objects[i].transfo);
-	}*/
 }
 
 void doLevel2(int argc,char* argv[]){
