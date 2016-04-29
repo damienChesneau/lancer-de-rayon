@@ -5,6 +5,7 @@ Sur chaque objets sera représenté comme ceci:
 	2:triangle
 	3:cylindre
 	4:camera
+-suivi de 3 floatants reprénsentant la couleur de l'objet (espacé par un espace)
 -suivi d'un saut de ligne
 -suivi de la matrice de transformation (nombres séparés pas un espace et par saut de ligne tout les quatres)
 -suivi d'un saut de ligne
