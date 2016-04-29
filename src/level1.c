@@ -16,22 +16,6 @@ char* getOpt(char* opt,int argc,char* argv[]){
 	}
 }
 
-void prodMatV(G3Xhmat mat, G3Xvector v, G3Xvector r){
-	r[0] = v[0]*mat[0] + v[1]*mat[4] + v[2]*mat[8];
-	r[1] = v[0]*mat[1] + v[1]*mat[5] + v[2]*mat[9];
-	r[2] = v[0]*mat[2] + v[1]*mat[6] + v[2]*mat[10];
-}
-
-void prodMatP(G3Xhmat mat, G3Xpoint p, G3Xpoint r){
-	r[0] = p[0]*mat[0] + p[1]*mat[4] + p[2]*mat[8] + mat[12];
-	r[1] = p[0]*mat[1] + p[1]*mat[5] + p[2]*mat[9] + mat[13];
-	r[2] = p[0]*mat[2] + p[1]*mat[6] + p[2]*mat[10] + mat[14];
-}
-
-void prodMatM(G3Xhmat a, G3Xhmat b, G3Xhmat r){
-	/*TO DO*/
-}
-
 void readMat(FILE* fichier,G3Xhmat mat){
 	if(fscanf(fichier,"%lf %lf %lf %lf\n", &(mat[0]), &(mat[4]), &(mat[8]), &(mat[12])));
 	if(fscanf(fichier,"%lf %lf %lf %lf\n", &(mat[1]), &(mat[5]), &(mat[9]), &(mat[13])));
@@ -368,10 +352,10 @@ void doLevel1(int argc,char* argv[]){
 			G3Xsetvct(canRay,canFocale,canPixel);
 			
 			G3Xvector ray;
-			prodMatV(camera.transfo,canRay,ray);
+			g3x_ProdHMatVector(camera.transfo,canRay,ray);
 			
 			G3Xpoint pixel;
-			prodMatP(camera.transfo,canPixel,pixel);
+			g3x_ProdHMatPoint(camera.transfo,canPixel,pixel);
 			
 			double lastInter = INT_MAX;
 
@@ -381,12 +365,12 @@ void doLevel1(int argc,char* argv[]){
 			for(k = 0; k<nbObjects;k++){
 				G3Xvector inObjectRay;
 				G3Xpoint inObjectPixel;
-				prodMatV(objects[k].inverse,ray,inObjectRay);
-				prodMatP(objects[k].inverse,pixel,inObjectPixel);
+				g3x_ProdHMatVector(objects[k].inverse,ray,inObjectRay);
+				g3x_ProdHMatPoint(objects[k].inverse,pixel,inObjectPixel);
 				G3Xpoint inObjectRi;
 				if(objects[k].intersection(inObjectPixel,inObjectRay,inObjectRi) == 1){
 					G3Xpoint ri;
-					prodMatP(objects[k].transfo,inObjectRi, ri);
+					g3x_ProdHMatPoint(objects[k].transfo,inObjectRi, ri);
 					G3Xvector rayInter;
 					G3Xsetvct(pixel,ri,rayInter);
 					

@@ -17,9 +17,6 @@ void doLevel4(int argc,char* argv[]);
 void save(char * dst);
 void printMat(G3Xhmat mat);
 void readMat(FILE* fichier,G3Xhmat mat);
-void prodMatV(G3Xhmat mat, G3Xvector v,G3Xvector r);
-void prodMatP(G3Xhmat mat, G3Xpoint p, G3Xpoint r);
-void prodMatM(G3Xhmat a, G3Xhmat b, G3Xhmat r);
 
 typedef struct{
 	G3Xcolor color;

@@ -64,4 +64,11 @@ main:
 	@$(CC) $(CFLAGS) $(inc) -c $(src)main.c -o main.o
 	@$(CC) main.o level1.o level2.o level3.o $(lib) -o main
 	@rm -f *.o
-	
+
+fractal_generator:
+	@$(CC) $(CFLAGS) $(inc) -c $(src)level1.c -o level1.o
+	@$(CC) $(CFLAGS) $(inc) -c $(src)fractal_generator.c -o fractal_generator.o
+	@$(CC) fractal_generator.o level1.o $(lib) -o fractal_generator
+	@rm -f *.o
+
+
