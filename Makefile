@@ -56,4 +56,12 @@ clean :
 	@rm -f *.o
 cleanall :
 	@rm -f *.o $(exec) *~ */*~
+
+main:
+	@$(CC) $(CFLAGS) $(inc) -c $(src)level1.c -o level1.o
+	@$(CC) $(CFLAGS) $(inc) -c $(src)level2.c -o level2.o
+	@$(CC) $(CFLAGS) $(inc) -c $(src)level3.c -o level3.o
+	@$(CC) $(CFLAGS) $(inc) -c $(src)main.c -o main.o
+	@$(CC) main.o level1.o level2.o level3.o $(lib) -o main
+	@rm -f *.o
 	

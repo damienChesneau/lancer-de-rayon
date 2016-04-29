@@ -1,36 +1,20 @@
-#include <g3x.h>
-#include <limits.h>
+#include "../include/level1.h"
 #define IMAGE_SIZE 512
 
-int rayInterSphere(G3Xpoint pos,G3Xvector dir, G3Xpoint ri);
-int rayInterTriangle(G3Xpoint pos, G3Xvector dir, G3Xpoint ri);
-int rayInterCube(G3Xpoint pos, G3Xvector dir, G3Xpoint ri);
-int rayInterCylindre(G3Xpoint pos,G3Xvector dir, G3Xpoint ri);
-void initObjects(char* src);
-char* getOpt(char* opt,int argc,char* argv[]);
-void doLevel1(int argc,char* argv[]);
-void doLevel2(int argc,char* argv[]);
-void doLevel3(int argc,char* argv[]);
-void doLevel4(int argc,char* argv[]);
-void save(char * dst);
-void printMat(G3Xhmat mat);
-void readMat(FILE* fichier,G3Xhmat mat);
-void prodMatV(G3Xhmat mat, G3Xvector v,G3Xvector r);
-void prodMatP(G3Xhmat mat, G3Xpoint p, G3Xpoint r);
-void prodMatM(G3Xhmat a, G3Xhmat b, G3Xhmat r);
-
-typedef struct{
-	G3Xcolor color;
-	int (*intersection)(G3Xpoint,G3Xvector,G3Xpoint);
-	G3Xhmat transfo;
-	G3Xhmat inverse;
-}Object;
-
-Object camera;
-Object objects[100];
-int nbObjects = 0;
-G3Xcolor image[IMAGE_SIZE][IMAGE_SIZE];
+static Object camera;
+static Object objects[100];
+static int nbObjects = 0;
+static G3Xcolor image[IMAGE_SIZE][IMAGE_SIZE];
 /*****************************************************************************************************/
+
+char* getOpt(char* opt,int argc,char* argv[]){
+	int i = 0;	
+	for(i = 1; i<argc; i++){
+		if(strcmp(argv[i],opt) == 0){
+			return argv[i+1];
+		}
+	}
+}
 
 void prodMatV(G3Xhmat mat, G3Xvector v, G3Xvector r){
 	r[0] = v[0]*mat[0] + v[1]*mat[4] + v[2]*mat[8];
@@ -375,9 +359,7 @@ void doLevel1(int argc,char* argv[]){
 	int i = 0;
 	int j = 0;
 	char * src = getOpt("-i",argc,argv);
-	printf("Option OK\n");
 	initObjects(src);
-	printf("Init Object OK\n");
 	G3Xpoint canFocale = {1,0,0};
 	for(i = 0; i<IMAGE_SIZE; i++){
 		for(j = 0; j<IMAGE_SIZE; j++){
@@ -423,54 +405,4 @@ void doLevel1(int argc,char* argv[]){
 		}
 	}
 	save(getOpt("-o",argc,argv));
-}
-
-void doLevel2(int argc,char* argv[]){
-	printf ("Unimplemented yet");
-}
-
-void doLevel3(int argc,char* argv[]){
-	printf ("Unimplemented yet");
-}
-
-void doLevel4(int argc,char* argv[]){
-	printf ("Unimplemented yet");
-}
-
-char* getOpt(char* opt,int argc,char* argv[]){
-	int i = 0;	
-	for(i = 1; i<argc; i++){
-		if(strcmp(argv[i],opt) == 0){
-			return argv[i+1];
-		}
-	}
-}
-
-int main(int argc, char* argv[]){
-	int level = atoi(getOpt("-n",argc,argv));
-	switch(level){
-		case 1:	
-			doLevel1(argc,argv);
-			break;
-
-
-		case 2:	
-			doLevel2(argc,argv);
-			break;
-
-
-		case 3:	
-			doLevel3(argc,argv);
-			break;
-
-
-		case 4:	
-			doLevel4(argc,argv);
-			break;
-
-		default:
-			printf("Unknown level.\n");
-			break;
-	}
-	return 1;
 }
