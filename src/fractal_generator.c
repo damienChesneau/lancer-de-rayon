@@ -7,7 +7,8 @@ static int currentColor = 0;
 
 /*****************************************************/
 void getColor(G3Xcolor color);
-void setFractal();
+void setFractal(int flag, G3Xvector homothetieValue, G3Xvector translationValue);
+void initNewObject(G3Xvector homothetieValue, G3Xvector translationValue);
 
 /*****************************************************/
 
@@ -36,7 +37,28 @@ void getColor(G3Xcolor color){
 	}
 }
 
-void setFractal(int flag, G3Xhmat transfo, G3Xhmat inverse){
+void initNewObject(G3Xvector homothetieValue, G3Xvector translationValue){
+	getColor(objects[nbObjects].color);
+
+	G3Xhmat translation;
+	G3Xhmat homothetie;
+	G3Xvector invertedTranslationValue = {-translationValue[0], -translationValue[1], -translationValue[2]};
+	G3Xvector invertedHomothetieValue = {1/homothetieValue[0], 1/homothetieValue[1], 1/homothetieValue[2]};
+
+
+	g3x_MakeHomothetieV(homothetie,homothetieValue);
+	g3x_MakeTranslationV(translation,translationValue);
+	g3x_ProdHMat(translation,homothetie,objects[nbObjects].transfo);
+
+	
+	g3x_MakeHomothetieV(homothetie,invertedHomothetieValue);
+	g3x_MakeTranslationV(translation,invertedTranslationValue);
+	g3x_ProdHMat(homothetie,translation,objects[nbObjects].inverse);
+
+	nbObjects++;
+}
+
+void setFractal(int flag, G3Xvector homothetieValue, G3Xvector translationValue){
 	G3Xvector normal[6] = {
 		{1,0,0},
 		{-1,0,0},
@@ -48,24 +70,20 @@ void setFractal(int flag, G3Xhmat transfo, G3Xhmat inverse){
 	int i = 0;
 	for(i = 0; i<6; i++){
 		if(i!=flag){
-			G3Xhmat operation;
-			g3x_MakeIdentity(operation);
-		
+			
 		}
 	}
 }
 /****************************************************/
 int main(int argc, char* argv[]){
-	getColor(objects[nbObjects].color);
-	g3x_MakeIdentity(objects[nbObjects].transfo);
-	g3x_MakeIdentity(objects[nbObjects].inverse);
-	g3x_MakeHomothetieXYZ(objects[nbObjects].transfo,100,100,100);
-	g3x_MakeHomothetieXYZ(objects[nbObjects].inverse,0.01,0.01,0.01);
-	printMat(objects[nbObjects].transfo);
-	printMat(objects[nbObjects].inverse);
-	nbObjects++;
+	G3Xvector initTranslation = {0,0,10};
+	G3Xvector initHomothetie = {100,100,100};
+	initNewObject(initHomothetie,initTranslation);
+	printMat(objects[nbObjects-1].transfo);
+	printMat(objects[nbObjects-1].inverse);
 
-	setFractal(-1,objects[nbObjects-1].transfo,objects[nbObjects-1].inverse);
+
+	setFractal(-1,initHomothetie,initTranslation);
 
 	return 1;
 }
