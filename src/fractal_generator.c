@@ -36,8 +36,23 @@ void getColor(G3Xcolor color){
 	}
 }
 
-void setFractal(){
-	
+void setFractal(int flag, G3Xhmat transfo, G3Xhmat inverse){
+	G3Xvector normal[6] = {
+		{1,0,0},
+		{-1,0,0},
+		{0,1,0},
+		{0,-1,0},
+		{0,0,1},
+		{0,0,-1}
+	};
+	int i = 0;
+	for(i = 0; i<6; i++){
+		if(i!=flag){
+			G3Xhmat operation;
+			g3x_MakeIdentity(operation);
+		
+		}
+	}
 }
 /****************************************************/
 int main(int argc, char* argv[]){
@@ -50,7 +65,7 @@ int main(int argc, char* argv[]){
 	printMat(objects[nbObjects].inverse);
 	nbObjects++;
 
-	setFractal();
+	setFractal(-1,objects[nbObjects-1].transfo,objects[nbObjects-1].inverse);
 
 	return 1;
 }
