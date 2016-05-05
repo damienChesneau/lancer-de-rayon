@@ -1,8 +1,10 @@
 #include "../include/level1.h"
 #define IMAGE_SIZE 512
+#define MAX_OBJECTS 300
+#define MIN_OBJECTS 100
 
 static Object camera;
-static Object objects[100];
+static Object objects[MAX_OBJECTS];
 static int nbObjects = 0;
 static G3Xcolor image[IMAGE_SIZE][IMAGE_SIZE];
 /*****************************************************************************************************/
@@ -66,7 +68,7 @@ void initObjects(char* src){
 						objects[nbObjects].intersection = rayInterCylindre;
 						break;
 				}
-				if(fscanf(fichier,"%f %f %f\n", &(objects[nbObjects].color[0]), &(objects[nbObjects].color[1]), &(objects[nbObjects].color[2]) ));
+				if(fscanf(fichier,"%f %f %f\n\n", &(objects[nbObjects].color[0]), &(objects[nbObjects].color[1]), &(objects[nbObjects].color[2]) ));
 
 				readMat(fichier,objects[nbObjects].transfo);
 
@@ -79,6 +81,7 @@ void initObjects(char* src){
 
 
 			}else{
+				if(fscanf(fichier,"\n\n"));
 
 				readMat(fichier,camera.transfo);
 
