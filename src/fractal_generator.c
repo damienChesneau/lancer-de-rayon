@@ -1,6 +1,4 @@
 #include "../include/level1.h"
-#define MAX_OBJECTS 300
-#define MIN_OBJECTS 100
 
 static Object objects[MAX_OBJECTS];
 static int nbObjects  = 0;

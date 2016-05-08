@@ -1,7 +1,4 @@
 #include "../include/level1.h"
-#define IMAGE_SIZE 512
-#define MAX_OBJECTS 300
-#define MIN_OBJECTS 100
 
 static Object camera;
 static Object objects[MAX_OBJECTS];
@@ -9,7 +6,23 @@ static int nbObjects = 0;
 static G3Xcolor image[IMAGE_SIZE][IMAGE_SIZE];
 /*****************************************************************************************************/
 
-char* getOpt(char* opt,int argc,char* argv[]){
+G3Xcolor** getImage(){
+	return image;
+}
+
+Object* lvl1_getObjects(){
+	return objects;
+}
+
+Object lvl1_getCamera(){
+	return camera;
+}
+
+int lvl1_getNbObjects(){
+	return nbObjects;
+}
+
+char* lvl1_getOpt(char* opt,int argc,char* argv[]){
 	int i = 0;	
 	for(i = 1; i<argc; i++){
 		if(strcmp(argv[i],opt) == 0){
@@ -18,21 +31,21 @@ char* getOpt(char* opt,int argc,char* argv[]){
 	}
 }
 
-void readMat(FILE* fichier,G3Xhmat mat){
+void lvl1_readMat(FILE* fichier,G3Xhmat mat){
 	if(fscanf(fichier,"%lf %lf %lf %lf\n", &(mat[0]), &(mat[4]), &(mat[8]), &(mat[12])));
 	if(fscanf(fichier,"%lf %lf %lf %lf\n", &(mat[1]), &(mat[5]), &(mat[9]), &(mat[13])));
 	if(fscanf(fichier,"%lf %lf %lf %lf\n", &(mat[2]), &(mat[6]), &(mat[10]), &(mat[14])));
 	if(fscanf(fichier,"%lf %lf %lf %lf\n", &(mat[3]), &(mat[7]), &(mat[11]), &(mat[15])));
 }
 
-void printMat(G3Xhmat mat){
+void lvl1_printMat(G3Xhmat mat){
 	printf("%lf\t%lf\t%lf\t%lf\n", mat[0], mat[4], mat[8], mat[12]);
 	printf("%lf\t%lf\t%lf\t%lf\n", mat[1], mat[5], mat[9], mat[13]);
 	printf("%lf\t%lf\t%lf\t%lf\n", mat[2], mat[6], mat[10], mat[14]);
 	printf("%lf\t%lf\t%lf\t%lf\n", mat[3], mat[7], mat[11], mat[15]);
 }
 
-void save(char * dst){
+void lvl1_save(char * dst){
 	FILE* fichier = fopen(dst,"w");
 	fprintf(fichier, "P3\n");
 	fprintf(fichier, "%d %d\n",IMAGE_SIZE,IMAGE_SIZE);
@@ -48,33 +61,32 @@ void save(char * dst){
 	fclose(fichier);
 }
 
-void initObjects(char* src){
+void lvl1_initObjects(char* src){
 	FILE* fichier = fopen(src,"r");
 	if (fichier != NULL){
-		int type = 0;
-		while(fscanf(fichier,"%d ",&type) != EOF){
-			if(type != 4){
-				switch(type){
+		while(fscanf(fichier,"%d ",&(objects[nbObjects].type)) != EOF){
+			if(objects[nbObjects].type != 4){
+				switch(objects[nbObjects].type){
 					case 0 :
-						objects[nbObjects].intersection = rayInterSphere;
+						objects[nbObjects].intersection = lvl1_rayInterSphere;
 						break;
 					case 1 :
-						objects[nbObjects].intersection = rayInterCube;
+						objects[nbObjects].intersection = lvl1_rayInterCube;
 						break;
 					case 2 :
-						objects[nbObjects].intersection = rayInterTriangle;
+						objects[nbObjects].intersection = lvl1_rayInterTriangle;
 						break;
 					case 3 :
-						objects[nbObjects].intersection = rayInterCylindre;
+						objects[nbObjects].intersection = lvl1_rayInterCylindre;
 						break;
 				}
 				if(fscanf(fichier,"%f %f %f\n\n", &(objects[nbObjects].color[0]), &(objects[nbObjects].color[1]), &(objects[nbObjects].color[2]) ));
 
-				readMat(fichier,objects[nbObjects].transfo);
+				lvl1_readMat(fichier,objects[nbObjects].transfo);
 
 				if(fscanf(fichier,"\n"));
 				
-				readMat(fichier,objects[nbObjects].inverse);
+				lvl1_readMat(fichier,objects[nbObjects].inverse);
 
 				if(fscanf(fichier,"\n"));
 				nbObjects++;
@@ -83,11 +95,11 @@ void initObjects(char* src){
 			}else{
 				if(fscanf(fichier,"\n\n"));
 
-				readMat(fichier,camera.transfo);
+				lvl1_readMat(fichier,camera.transfo);
 
 				if(fscanf(fichier,"\n"));
 				
-				readMat(fichier,camera.inverse);
+				lvl1_readMat(fichier,camera.inverse);
 
 				if(fscanf(fichier,"\n"));
 			}
@@ -96,7 +108,7 @@ void initObjects(char* src){
 	fclose(fichier);
 }
 
-int rayInterSphere(G3Xpoint pos,G3Xvector dir, G3Xpoint ri){
+int lvl1_rayInterSphere(G3Xpoint pos,G3Xvector dir, G3Xpoint ri){
 	double ps = G3Xprodscal(pos,dir);
 	if(ps>= 0 ){
 		return 0;
@@ -118,7 +130,7 @@ int rayInterSphere(G3Xpoint pos,G3Xvector dir, G3Xpoint ri){
 	return 1;
 }
 
-int rayInterCylindre(G3Xpoint pos,G3Xvector dir, G3Xpoint ri){
+int lvl1_rayInterCylindre(G3Xpoint pos,G3Xvector dir, G3Xpoint ri){
 	if(G3Xprodscal(pos,dir)>=0){
 		return 0;
 	}
@@ -188,7 +200,7 @@ int rayInterCylindre(G3Xpoint pos,G3Xvector dir, G3Xpoint ri){
 
 }
 
-int rayInterTriangle(G3Xpoint pos, G3Xvector dir, G3Xpoint ri){
+int lvl1_rayInterTriangle(G3Xpoint pos, G3Xvector dir, G3Xpoint ri){
 	G3Xvector normal = {1,0,0};
 	if(G3Xprodscal(normal,dir)>=0){
 		return 0;
@@ -208,7 +220,7 @@ int rayInterTriangle(G3Xpoint pos, G3Xvector dir, G3Xpoint ri){
 	return 1;
 }
 
-int rayInterCube(G3Xpoint pos, G3Xvector dir, G3Xpoint ri){
+int lvl1_rayInterCube(G3Xpoint pos, G3Xvector dir, G3Xpoint ri){
 	if(G3Xprodscal(pos,dir)>=0){
 		return 0;
 	}
@@ -342,11 +354,11 @@ int rayInterCube(G3Xpoint pos, G3Xvector dir, G3Xpoint ri){
 }
 
 /****************************************************************************************************/
-void doLevel1(int argc,char* argv[]){
+void lvl1_do(int argc,char* argv[]){
 	int i = 0;
 	int j = 0;
-	char * src = getOpt("-i",argc,argv);
-	initObjects(src);
+	char * src = lvl1_getOpt("-i",argc,argv);
+	lvl1_initObjects(src);
 	G3Xpoint canFocale = {1,0,0};
 	for(i = 0; i<IMAGE_SIZE; i++){
 		for(j = 0; j<IMAGE_SIZE; j++){
@@ -374,10 +386,10 @@ void doLevel1(int argc,char* argv[]){
 				if(objects[k].intersection(inObjectPixel,inObjectRay,inObjectRi) == 1){
 					G3Xpoint ri;
 					g3x_ProdHMatPoint(objects[k].transfo,inObjectRi, ri);
-					G3Xvector rayInter;
-					G3Xsetvct(pixel,ri,rayInter);
+					G3Xvector lvl1_rayInter;
+					G3Xsetvct(pixel,ri,lvl1_rayInter);
 					
-					if(G3Xsqrvnorm(rayInter)<lastInter){
+					if(G3Xsqrvnorm(lvl1_rayInter)<lastInter){
 						toSet[0] = objects[k].color[0];
 						toSet[1] = objects[k].color[1];
 						toSet[2] = objects[k].color[2];
@@ -391,5 +403,5 @@ void doLevel1(int argc,char* argv[]){
 
 		}
 	}
-	save(getOpt("-o",argc,argv));
+	lvl1_save(lvl1_getOpt("-o",argc,argv));
 }

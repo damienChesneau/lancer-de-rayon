@@ -2,6 +2,6 @@
 #define __LEVEL3__
 #include "level2.h"
 
-void doLevel3(int argc,char* argv[]);
+void lvl3_do(int argc,char* argv[]);
 
 #endif
