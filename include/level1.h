@@ -15,7 +15,7 @@ typedef struct{
 	G3Xhmat inverse;
 }Object;
 
-G3Xcolor** getImage();
+void lvl1_setPixel(G3Xcolor toSet,int i,int j);
 Object* lvl1_getObjects();
 Object lvl1_getCamera();
 int lvl1_getNbObjects();

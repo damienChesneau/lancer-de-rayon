@@ -6,8 +6,10 @@ static int nbObjects = 0;
 static G3Xcolor image[IMAGE_SIZE][IMAGE_SIZE];
 /*****************************************************************************************************/
 
-G3Xcolor** getImage(){
-	return image;
+void lvl1_setPixel(G3Xcolor toSet,int i,int j){
+	image[i][j][0] = toSet[0];
+	image[i][j][1] = toSet[1];
+	image[i][j][2] = toSet[2];
 }
 
 Object* lvl1_getObjects(){
@@ -386,13 +388,14 @@ void lvl1_do(int argc,char* argv[]){
 				if(objects[k].intersection(inObjectPixel,inObjectRay,inObjectRi) == 1){
 					G3Xpoint ri;
 					g3x_ProdHMatPoint(objects[k].transfo,inObjectRi, ri);
-					G3Xvector lvl1_rayInter;
-					G3Xsetvct(pixel,ri,lvl1_rayInter);
-					
-					if(G3Xsqrvnorm(lvl1_rayInter)<lastInter){
+					G3Xvector rayInter;
+					G3Xsetvct(pixel,ri,rayInter);
+					double inter = G3Xsqrvnorm(rayInter);
+					if(inter < lastInter){
 						toSet[0] = objects[k].color[0];
 						toSet[1] = objects[k].color[1];
 						toSet[2] = objects[k].color[2];
+						lastInter = inter;
 					}
 				}
 				image[i][j][0] = toSet[0];
