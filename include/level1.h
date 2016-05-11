@@ -3,6 +3,7 @@
 
 #include <g3x.h>
 #include <limits.h>
+#include <time.h>
 #define IMAGE_SIZE 512
 #define MAX_OBJECTS 300
 #define MIN_OBJECTS 100

@@ -359,9 +359,10 @@ int lvl1_rayInterCube(G3Xpoint pos, G3Xvector dir, G3Xpoint ri){
 void lvl1_do(int argc,char* argv[]){
 	int i = 0;
 	int j = 0;
-	char * src = lvl1_getOpt("-i",argc,argv);
-	lvl1_initObjects(src);
+	lvl1_initObjects(lvl1_getOpt("-i",argc,argv));
 	G3Xpoint canFocale = {1,0,0};
+	clock_t start,finish;
+	start = clock();
 	for(i = 0; i<IMAGE_SIZE; i++){
 		for(j = 0; j<IMAGE_SIZE; j++){
 			G3Xpoint canPixel = {0,(i-(IMAGE_SIZE/2.0))/IMAGE_SIZE ,(j-(IMAGE_SIZE/2.0))/IMAGE_SIZE};
@@ -406,5 +407,8 @@ void lvl1_do(int argc,char* argv[]){
 
 		}
 	}
+	finish = clock();
+	double duration = (double)(finish - start)/CLOCKS_PER_SEC;
+	printf("%lfsecondes\n",duration);
 	lvl1_save(lvl1_getOpt("-o",argc,argv));
 }

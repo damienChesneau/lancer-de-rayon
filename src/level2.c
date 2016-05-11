@@ -35,27 +35,38 @@ int lvl2_tabCpy(int* dst, int* src, int start, int end){
 }
 
 
-BoundingSphere* lvl2_getNewBoundingSphere (int* s, int length, int axe){
-	float min = INT_MAX;
-	float max = INT_MIN;
+BoundingSphere* lvl2_getNewBoundingSphere (int* s, int length){
+	float min[3];
+	float max[3];
+
+	min[0] = INT_MAX;
+	min[1] = INT_MAX;
+	min[2] = INT_MAX;
+
+	max[0] = INT_MIN;
+	max[1] = INT_MIN;
+	max[2] = INT_MIN;
+
 	int i = 0;
 	for(i = 0; i<length; i++){
-		if(min > bs[s[i]].center[axe] - bs[s[i]].ray){
-			min = bs[s[i]].center[axe] - bs[s[i]].ray;
-		}
-		if(max < bs[s[i]].center[axe] + bs[s[i]].ray){
-			max = bs[s[i]].center[axe] + bs[s[i]].ray;
+		int axe;
+		for(axe = 0; axe<3; axe++){
+			if(min[axe] > bs[s[i]].center[axe] - bs[s[i]].ray){
+				min[axe] = bs[s[i]].center[axe] - bs[s[i]].ray;
+			}
+			if(max[axe] < bs[s[i]].center[axe] + bs[s[i]].ray){
+				max[axe] = bs[s[i]].center[axe] + bs[s[i]].ray;
+			}
 		}
 	}
 	
 	BoundingSphere* ret= (BoundingSphere *) malloc(sizeof(BoundingSphere));
 	
-	ret->ray = (max-min)/2.0;
-	
-	ret->center[0] = 0;
-	ret->center[1] = 0;
-	ret->center[2] = 0;
-	ret->center[axe] = min + ret->ray;
+	ret->center[0] = (min[0]+max[0])/2;
+	ret->center[1] = (min[1]+max[1])/2;
+	ret->center[2] = (min[2]+max[2])/2;
+
+	ret->ray = sqrt( ((max[0]-ret->center[0]) * (max[0]-ret->center[0])) + ((max[1]-ret->center[1]) * (max[1]-ret->center[1])) + ((max[2]-ret->center[2]) * (max[2]-ret->center[2])) );
 
 	ret->object = NULL;
 	ret->s1 = NULL;
@@ -85,6 +96,7 @@ void lvl2_initHierarchicalStructure(int* s, int length, BoundingSphere* father){
 	int *ts2_min=NULL;
 	int s1_length_min = 0;
 	int s2_length_min = 0; 
+	
 	BoundingSphere* s1_min = NULL;
 	BoundingSphere* s2_min = NULL;
 
@@ -111,8 +123,8 @@ void lvl2_initHierarchicalStructure(int* s, int length, BoundingSphere* father){
 			int s1_length = lvl2_tabCpy(ts1,p,0,i);
 			int s2_length = lvl2_tabCpy(ts2,p,i+1,length);
 
-			BoundingSphere* s1 = lvl2_getNewBoundingSphere(ts1, s1_length, axe);
-			BoundingSphere* s2 = lvl2_getNewBoundingSphere(ts2, s2_length, axe);
+			BoundingSphere* s1 = lvl2_getNewBoundingSphere(ts1, s1_length);
+			BoundingSphere* s2 = lvl2_getNewBoundingSphere(ts2, s2_length);
 
 			float a_s1 = 4 * 3.14 * s1->ray * s1->ray;
 			float a_s2 = 4 * 3.14 * s2->ray * s2->ray;
@@ -203,7 +215,6 @@ void lvl2_isTouched(BoundingSphere* s, G3Xpoint pixel, G3Xvector ray){
 		return;
 	}
 	if(s->object !=NULL){
-		/*printf("ok\n");*/
 		G3Xvector inObjectRay;
 		G3Xpoint inObjectPixel;
 
@@ -215,7 +226,7 @@ void lvl2_isTouched(BoundingSphere* s, G3Xpoint pixel, G3Xvector ray){
 			G3Xpoint tempRi;
 			g3x_ProdHMatPoint(s->object->transfo,inObjectRi, tempRi);
 			G3Xvector rayInter;
-			G3Xsetvct(pixel,tempRi,rayInter);
+			G3Xsetvct(tempRi,pixel,rayInter);
 			double inter = G3Xsqrvnorm(rayInter);
 			if(inter < lastInter){
 				toSet[0] = s->object->color[0];
@@ -229,24 +240,24 @@ void lvl2_isTouched(BoundingSphere* s, G3Xpoint pixel, G3Xvector ray){
 		}
 		return;
 	}
-	if(s->s1 == NULL || s->s2 == NULL){
+	if(s->s1 == NULL && s->s2 == NULL){
 		int i = 0;
 		for (i = 0; i<4 && s->leaves[i] != NULL; i++){
 			lvl2_isTouched(s->leaves[i],pixel,ray);
 		}
-	}else{
-		if(lvl2_intersection(pixel,ray,s->s1->ray,s->s1->center) == 1){
-			lvl2_isTouched(s->s1,pixel,ray);
-		}
-		if(lvl2_intersection(pixel,ray,s->s2->ray,s->s2->center) == 1){
-			lvl2_isTouched(s->s2,pixel,ray);
-		}
-	}	
+		return;
+	}
+	if(lvl2_intersection(pixel,ray,s->s1->ray,s->s1->center) == 1){
+		lvl2_isTouched(s->s1,pixel,ray);
+	}
+	if(lvl2_intersection(pixel,ray,s->s2->ray,s->s2->center) == 1){
+		lvl2_isTouched(s->s2,pixel,ray);
+	}
 	lvl2_isTouched(s->leaves[0],pixel,ray);
 
 }
 
-int lvl2_intersection(G3Xpoint pos, G3Xvector dir, float ray, G3Xpoint center){
+int lvl2_intersection(G3Xpoint pos, G3Xvector dir, float ray, G3Xvector center){
 	G3Xvector centerPos;
 	G3Xsetvct(centerPos,center,pos);
 	double ps = G3Xprodscal(centerPos,dir);
@@ -257,24 +268,37 @@ int lvl2_intersection(G3Xpoint pos, G3Xvector dir, float ray, G3Xpoint center){
 	double p2 = (ps*ps)/G3Xsqrvnorm(dir);
 	double d2 = G3Xsqrvnorm(centerPos) - p2;
 
-	if(d2 >= ray){
+	if(d2 >= (ray*ray)){
 		return 0;
 	}
 
 	return 1;
 }
+
+void lvl2_freeHierarchicalStructure(BoundingSphere* s){
+	if(s == NULL){
+		return;
+	}
+	lvl2_freeHierarchicalStructure(s->s1);
+	lvl2_freeHierarchicalStructure(s->s2);
+	free(s);
+	s = NULL;
+}
 /**************************************************/
 void lvl2_do(int argc,char* argv[]){
-	lvl2_initBoundingSpheres("./fractal_generator.format");
-	int indexs[nbObjects];
+	lvl2_initBoundingSpheres(lvl1_getOpt("-i",argc,argv));
+	int nbSample = atoi(lvl1_getOpt("-ps",argc,argv));
+	int *indexs = (int *)malloc(sizeof(int)*nbObjects);
 	int i;
 	for(i = 0; i < nbObjects; i++){
 		indexs[i] = i;
 	}
-	hierarchicalStructure = lvl2_getNewBoundingSphere(indexs,nbObjects,0);
+	hierarchicalStructure = lvl2_getNewBoundingSphere(indexs,nbObjects);
 	lvl2_initHierarchicalStructure(indexs,nbObjects,hierarchicalStructure);
 	int j;
 	G3Xpoint canFocale = {1,0,0};
+	clock_t start,finish;
+	start = clock();
 	for(i = 0; i<IMAGE_SIZE; i++){
 		for(j = 0; j<IMAGE_SIZE; j++){
 			G3Xpoint canPixel = {0,(i-(IMAGE_SIZE/2.0))/IMAGE_SIZE ,(j-(IMAGE_SIZE/2.0))/IMAGE_SIZE};
@@ -297,5 +321,10 @@ void lvl2_do(int argc,char* argv[]){
 			lvl1_setPixel(toSet,i,j);
 		}
 	}
-	lvl1_save("im.ppm");
+	finish = clock();
+	double duration = (double)(finish - start)/CLOCKS_PER_SEC;
+	printf("%lfsecondes\n",duration);
+	lvl1_save(lvl1_getOpt("-o",argc,argv));
+	free(indexs);
+	lvl2_freeHierarchicalStructure(hierarchicalStructure);
 }
