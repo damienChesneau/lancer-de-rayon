@@ -1,15 +1,4 @@
 #include "../include/level2.h"
-
-
-typedef struct boundingSphere{
-	Object* object;
-	float ray;
-	G3Xpoint center;
-	struct boundingSphere* leaves[4];
-	struct boundingSphere* s1;
-	struct boundingSphere* s2;
-}BoundingSphere;
-
 /**************************************************/
 static Object camera;
 static BoundingSphere bs[MAX_OBJECTS];
@@ -18,11 +7,6 @@ static BoundingSphere* hierarchicalStructure;
 static double lastInter;
 static G3Xcolor toSet = {0,0,0};
 static G3Xpoint ri;
-/*****************************************************/
-
-void lvl2_do(int argc,char* argv[]);
-float lvl2_getRay(double ray, G3Xhmat mat); 
-int lvl2_intersection(G3Xpoint pos, G3Xvector dir, float ray, G3Xpoint center);
 /****************************************************/
 
 
@@ -296,29 +280,48 @@ void lvl2_do(int argc,char* argv[]){
 	hierarchicalStructure = lvl2_getNewBoundingSphere(indexs,nbObjects);
 	lvl2_initHierarchicalStructure(indexs,nbObjects,hierarchicalStructure);
 	int j;
+	int k;
 	G3Xpoint canFocale = {1,0,0};
 	clock_t start,finish;
 	start = clock();
+	G3Xcolor toRet = {0,0,0};
 	for(i = 0; i<IMAGE_SIZE; i++){
 		for(j = 0; j<IMAGE_SIZE; j++){
-			G3Xpoint canPixel = {0,(i-(IMAGE_SIZE/2.0))/IMAGE_SIZE ,(j-(IMAGE_SIZE/2.0))/IMAGE_SIZE};
-			G3Xvector canRay;
-			G3Xsetvct(canRay,canFocale,canPixel);
-			
-			G3Xvector ray;
-			g3x_ProdHMatVector(camera.transfo,canRay,ray);
-			
-			G3Xpoint pixel;
-			g3x_ProdHMatPoint(camera.transfo,canPixel,pixel);
-			
-			lastInter = INT_MAX;
+			for(k = 0; k<nbSample; k++){
+				double r = rand()%10;
+				double sample_x = r / 10;
+				r = rand()%10;
+				double sample_y = r /10;
 
-			toSet[0] = 0;
-			toSet[1] = 0;
-			toSet[2] = 0;
-			
-			lvl2_isTouched(hierarchicalStructure,pixel,ray);
-			lvl1_setPixel(toSet,i,j);
+				double x = (i+sample_x-(IMAGE_SIZE/2.0))/IMAGE_SIZE;
+				double y = (j+sample_y-(IMAGE_SIZE/2.0))/IMAGE_SIZE;
+
+				G3Xpoint canPixel = {0,x,y};
+				G3Xvector canRay;
+				G3Xsetvct(canRay,canFocale,canPixel);
+				
+				G3Xvector ray;
+				g3x_ProdHMatVector(camera.transfo,canRay,ray);
+				
+				G3Xpoint pixel;
+				g3x_ProdHMatPoint(camera.transfo,canPixel,pixel);
+				
+				lastInter = INT_MAX;
+
+				toSet[0] = 0;
+				toSet[1] = 0;
+				toSet[2] = 0;
+				
+				lvl2_isTouched(hierarchicalStructure,pixel,ray);
+
+				toRet[0]+= toSet[0];
+				toRet[1]+= toSet[1];
+				toRet[2]+= toSet[2];
+			}
+			toRet[0] /= nbSample;
+			toRet[1] /= nbSample;
+			toRet[2] /= nbSample;
+			lvl1_setPixel(toRet,i,j);
 		}
 	}
 	finish = clock();
