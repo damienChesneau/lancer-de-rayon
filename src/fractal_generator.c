@@ -7,12 +7,26 @@ static Object camera;
 
 
 /*****************************************************/
+
+/*Renvoie une couleur parmis une choix successif modulo*/
 void getColor(G3Xcolor color);
+
+/*Fonction recursive qui crée la fractale*/
 void setFractal(int nbRecursion, int flag, G3Xvector homothetieValue, G3Xvector translationValue);
+
+/*Créer un cube avec les transformations d'homothetie et de translation correspondante*/
 void initNewObject(G3Xvector homothetieValue, G3Xvector translationValue);
+
+/*Nous renvoie le nombre de récursion pour avoir au moins min élements*/
 int getNbRecursion(int min);
+
+/*Sauvegarde la fractale au format associé*/
 void saveFormat();
+
+/*Ecrit une matrice de transformation dans un fichier*/
 void fprintMat(FILE * fichier,G3Xhmat mat);
+
+/*Ecrit un objet dans un fichier*/
 void fprintObject(FILE* fichier, Object object, int type);
 
 /*****************************************************/
@@ -147,7 +161,7 @@ int main(int argc, char* argv[]){
 		return 0;
 	}
 
-	setFractal(nbRecursion,1,initHomothetie,initTranslation);
+	setFractal(nbRecursion,0,initHomothetie,initTranslation);
 	g3x_MakeTranslationXYZ(camera.transfo,300,0,0);
 	g3x_MakeTranslationXYZ(camera.inverse,-300,0,0);
 

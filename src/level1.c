@@ -375,7 +375,8 @@ void lvl1_do(int argc,char* argv[]){
 			G3Xpoint pixel;
 			g3x_ProdHMatPoint(camera.transfo,canPixel,pixel);
 			
-			double lastInter = INT_MAX;
+
+			double lastInter = INT_MIN;
 
 			G3Xcolor toSet = {0,0,0};
 			
@@ -388,11 +389,11 @@ void lvl1_do(int argc,char* argv[]){
 				G3Xpoint inObjectRi;
 				if(objects[k].intersection(inObjectPixel,inObjectRay,inObjectRi) == 1){
 					G3Xpoint ri;
-					g3x_ProdHMatPoint(objects[k].transfo,inObjectRi, ri);
-					G3Xvector rayInter;
-					G3Xsetvct(pixel,ri,rayInter);
-					double inter = G3Xsqrvnorm(rayInter);
-					if(inter < lastInter){
+					G3Xpoint tempRi;
+					g3x_ProdHMatPoint(objects[k].transfo,inObjectRi, tempRi);
+					g3x_ProdHMatPoint(camera.inverse,tempRi, ri);
+					double inter = ri[0];
+					if(inter > lastInter){
 						toSet[0] = objects[k].color[0];
 						toSet[1] = objects[k].color[1];
 						toSet[2] = objects[k].color[2];

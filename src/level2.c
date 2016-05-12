@@ -207,12 +207,12 @@ void lvl2_isTouched(BoundingSphere* s, G3Xpoint pixel, G3Xvector ray){
 
 		G3Xpoint inObjectRi;
 		if(s->object->intersection(inObjectPixel,inObjectRay,inObjectRi) == 1){
+			G3Xpoint ri;
 			G3Xpoint tempRi;
 			g3x_ProdHMatPoint(s->object->transfo,inObjectRi, tempRi);
-			G3Xvector rayInter;
-			G3Xsetvct(tempRi,pixel,rayInter);
-			double inter = G3Xsqrvnorm(rayInter);
-			if(inter < lastInter){
+			g3x_ProdHMatPoint(camera.inverse,tempRi, ri);
+			double inter = ri[0];
+			if(inter > lastInter){
 				toSet[0] = s->object->color[0];
 				toSet[1] = s->object->color[1];
 				toSet[2] = s->object->color[2];
@@ -284,9 +284,9 @@ void lvl2_do(int argc,char* argv[]){
 	G3Xpoint canFocale = {1,0,0};
 	clock_t start,finish;
 	start = clock();
-	G3Xcolor toRet = {0,0,0};
 	for(i = 0; i<IMAGE_SIZE; i++){
 		for(j = 0; j<IMAGE_SIZE; j++){
+			G3Xcolor toRet = {0,0,0};
 			for(k = 0; k<nbSample; k++){
 				double r = rand()%10;
 				double sample_x = r / 10;
@@ -306,7 +306,7 @@ void lvl2_do(int argc,char* argv[]){
 				G3Xpoint pixel;
 				g3x_ProdHMatPoint(camera.transfo,canPixel,pixel);
 				
-				lastInter = INT_MAX;
+				lastInter = INT_MIN;
 
 				toSet[0] = 0;
 				toSet[1] = 0;
